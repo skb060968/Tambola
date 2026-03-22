@@ -1,0 +1,23 @@
+{
+  "name": "Tambola",
+  "short_name": "Tambola",
+  "description": "Tambola (Housie / Indian Bingo) – play offline or online with friends",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#8b4513",
+  "background_color": "#efe8dd",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

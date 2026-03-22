@@ -1,0 +1,32 @@
+{
+  "name": "tambola-game",
+  "version": "1.0.0",
+  "description": "Tambola (Housie / Indian Bingo) – a mobile-first PWA with offline and online multiplayer modes",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "firebase": "^12.9.0"
+  },
+  "devDependencies": {
+    "fast-check": "latest",
+    "jsdom": "^29.0.1",
+    "vite": "^7.3.1",
+    "vitest": "latest"
+  },
+  "keywords": [
+    "tambola",
+    "housie",
+    "bingo",
+    "board-game",
+    "multiplayer",
+    "firebase",
+    "pwa"
+  ],
+  "author": "",
+  "license": "MIT"
+}

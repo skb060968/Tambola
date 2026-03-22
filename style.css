@@ -1,0 +1,865 @@
+/* =========================================================
+   TAMBOLA – POLISHED STYLE
+   Warm wood-textured theme, mobile-first responsive layout
+   ========================================================= */
+
+/* =========================================================
+   0) CSS VARIABLES
+   ========================================================= */
+:root {
+  --color-wood-dark: #4b2a12;
+  --color-wood-mid: #6b4a2b;
+  --color-wood-light: #8b4513;
+  --color-cream: #fdf6e3;
+  --color-cream-dark: #f2e0b6;
+  --color-panel-bg: rgba(20, 10, 0, 0.6);
+  --color-panel-bg-strong: rgba(20, 10, 0, 0.8);
+  --color-text-light: #fff;
+  --color-text-dark: #5c3317;
+  --color-text-muted: rgba(255, 255, 255, 0.4);
+  --color-called: #f39c12;
+  --color-called-text: #1a1a1a;
+  --color-marked: #2ecc71;
+  --color-marked-text: #fff;
+  --color-near-glow: rgba(243, 156, 18, 0.6);
+  --color-error: #e74c3c;
+  --color-won: #27ae60;
+
+  --fs-body: 14px;
+  --fs-called: 15px;
+  --fs-title: 1.6rem;
+  --fs-subtitle: 1rem;
+  --fs-ball-number: 2.2rem;
+  --fs-board-cell: 12px;
+  --fs-ticket-cell: 14px;
+  --fs-btn: 14px;
+
+  --gap-sm: 6px;
+  --gap-md: 10px;
+  --gap-lg: 16px;
+
+  --ball-size: 90px;
+}
+
+/* =========================================================
+   1) RESET & BASE
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body { width: 100%; height: 100%; }
+
+body {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: var(--fs-body);
+  color: var(--color-text-light);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #5c3317, #3a1f0d);
+}
+
+/* =========================================================
+   2) APP SHELL & VIEW MANAGEMENT
+   ========================================================= */
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100svh;
+  padding: 8px;
+  gap: var(--gap-md);
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: var(--gap-md);
+}
+
+.view[hidden] { display: none !important; }
+
+/* =========================================================
+   3) HOME SCREEN
+   ========================================================= */
+.home-header { text-align: center; padding: 32px 0 12px; }
+
+.game-title {
+  font-size: var(--fs-title);
+  font-family: Georgia, serif;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.game-subtitle {
+  font-size: var(--fs-subtitle);
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.mode-selection {
+  display: flex;
+  gap: var(--gap-md);
+  width: 100%;
+  max-width: 300px;
+}
+
+.mode-select-btn { flex: 1; font-size: var(--fs-btn); }
+
+.offline-setup, .online-choice {
+  width: 100%;
+  max-width: 340px;
+  background: var(--color-panel-bg);
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-md);
+}
+
+.offline-setup[hidden], .online-choice[hidden] { display: none !important; }
+
+.setup-heading { font-size: 1.05rem; font-family: Georgia, serif; }
+.setup-label { font-size: var(--fs-body); opacity: 0.8; }
+
+/* =========================================================
+   4) PLAYER COUNT SELECTOR
+   ========================================================= */
+.player-count-selector {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.player-count-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  background: linear-gradient(180deg, var(--color-wood-mid), var(--color-wood-dark));
+  box-shadow: 0 3px 0 #3a1f0d, 0 4px 10px rgba(0,0,0,0.3);
+  opacity: 0.65;
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.15s;
+}
+
+.player-count-btn:hover { filter: brightness(1.06); }
+
+.player-count-btn.active {
+  opacity: 1;
+  background: linear-gradient(180deg, #2b6ef6, #1e4fbf);
+  box-shadow: 0 2px 0 #153b8f, 0 4px 10px rgba(0,0,0,0.3);
+  transform: translateY(1px);
+}
+
+/* =========================================================
+   5) BUTTONS
+   ========================================================= */
+.btn {
+  width: 100%;
+  max-width: 260px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: var(--fs-btn);
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, var(--color-wood-light), var(--color-wood-dark));
+  color: var(--color-text-light);
+  box-shadow: 0 3px 0 var(--color-wood-dark), 0 5px 10px rgba(0,0,0,0.3);
+}
+
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.primary:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--color-wood-dark); }
+
+.btn.secondary {
+  background: linear-gradient(180deg, var(--color-cream), var(--color-cream-dark));
+  color: var(--color-text-dark);
+  box-shadow: 0 3px 0 #9c8a5c, 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn.secondary:hover { filter: brightness(1.04); }
+.btn.secondary:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c8a5c; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.4); }
+
+/* =========================================================
+   6) JOIN ROOM FORM
+   ========================================================= */
+.join-room-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.join-room-form[hidden] { display: none !important; }
+
+.join-room-form input {
+  width: 100%;
+  max-width: 240px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  color: var(--color-text-light);
+  text-align: center;
+  outline: none;
+}
+
+.join-room-form input::placeholder { color: rgba(255,255,255,0.45); }
+.join-room-form input:focus { border-color: var(--color-called); }
+
+/* =========================================================
+   7) LOBBY VIEW
+   ========================================================= */
+.lobby-header { text-align: center; }
+.lobby-title { font-size: 1.15rem; font-family: Georgia, serif; }
+
+.room-code-display { margin-top: 4px; font-size: 0.95rem; opacity: 0.9; }
+.room-code-display span { font-weight: 800; letter-spacing: 3px; color: var(--color-called); }
+
+.player-list {
+  list-style: none;
+  width: 100%;
+  max-width: 300px;
+  background: var(--color-panel-bg);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.player-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 8px;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.player-list li .host-badge {
+  font-size: 0.7rem;
+  background: var(--color-called);
+  color: #1a1a1a;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-weight: 800;
+}
+
+.player-list li .remove-btn {
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.lobby-actions { display: flex; flex-direction: column; align-items: center; gap: var(--gap-md); }
+.lobby-waiting { font-size: var(--fs-body); opacity: 0.65; font-style: italic; }
+
+/* =========================================================
+   8) LOTTERY BALL — bounce + glow reveal
+   ========================================================= */
+.ball-stage {
+  width: var(--ball-size);
+  height: var(--ball-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px auto;
+}
+
+.ball-sphere {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 30%, transparent 60%),
+    radial-gradient(ellipse 100% 40% at 50% 48%, var(--color-called) 0%, rgba(243,156,18,0.2) 80%, transparent 100%),
+    radial-gradient(circle at 50% 55%, #f5f0e0 0%, #e0d0b0 60%, #b89a6a 100%);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.45),
+    inset 0 -8px 20px rgba(0,0,0,0.2),
+    inset 0 6px 14px rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Hide the extra 3D faces — only front face used */
+.ball-face { display: none; }
+.ball-face.ball-front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.ball-number {
+  font-size: var(--fs-ball-number);
+  font-weight: 900;
+  color: #2c1810;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.5);
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Spinning state: ball drops, bounces, shakes, then number reveals */
+@keyframes ball-drop-bounce {
+  0%   { transform: translateY(-40px) scale(0.85); opacity: 0.6; }
+  25%  { transform: translateY(6px) scale(1.05, 0.92); opacity: 1; }
+  40%  { transform: translateY(-12px) scale(0.97, 1.03); }
+  55%  { transform: translateY(3px) scale(1.02, 0.98); }
+  65%  { transform: translateY(-5px) rotate(-4deg); }
+  75%  { transform: translateY(2px) rotate(3deg); }
+  85%  { transform: translateY(-1px) rotate(-2deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+@keyframes number-reveal {
+  0%   { opacity: 0; transform: scale(0.2); }
+  50%  { opacity: 1; transform: scale(1.3); }
+  70%  { transform: scale(0.9); }
+  85%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ball-glow {
+  0%   { box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
+  50%  { box-shadow: 0 0 30px rgba(243,156,18,0.7), 0 0 60px rgba(243,156,18,0.3), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
+  100% { box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
+}
+
+.ball-sphere.spinning {
+  animation: ball-drop-bounce 0.7s cubic-bezier(0.22, 0.61, 0.36, 1), ball-glow 0.7s ease-in-out;
+}
+
+.ball-sphere.spinning .ball-number {
+  opacity: 0;
+}
+
+.ball-sphere.settled .ball-number {
+  animation: number-reveal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
+/* =========================================================
+   9) RECENT CALLS STRIP
+   ========================================================= */
+.recent-calls {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 0;
+}
+
+.recent-calls .recent-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-called);
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 14px;
+  border: 2px solid transparent;
+}
+
+.recent-calls .recent-number:first-child {
+  border-color: #fff;
+}
+
+/* =========================================================
+   10) TICKET — looks like a real Tambola ticket card
+   ========================================================= */
+.ticket-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.ticket-wrapper {
+  width: 100%;
+  max-width: 380px;
+}
+
+.ticket-label {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.75;
+  margin-bottom: 3px;
+}
+
+.ticket {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1px;
+  width: 100%;
+  background: #2c1810;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 3px solid var(--color-called);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.ticket-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  font-size: var(--fs-ticket-cell);
+  font-weight: 700;
+  transition: background 0.2s, transform 0.15s;
+  cursor: default;
+}
+
+.ticket-cell.has-number {
+  background: var(--color-cream);
+  color: #2c1810;
+  cursor: pointer;
+}
+
+.ticket-cell.has-number:active { transform: scale(0.95); }
+
+.ticket-cell.blank {
+  background: var(--color-cream);
+}
+
+.ticket-cell.marked {
+  background: var(--color-marked);
+  color: var(--color-marked-text);
+  position: relative;
+  font-weight: 800;
+}
+
+.ticket-cell.marked::after {
+  content: "✓";
+  position: absolute;
+  top: 0;
+  right: 2px;
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.ticket.near-pattern {
+  border-color: var(--color-called);
+  box-shadow: 0 0 10px var(--color-near-glow), 0 0 20px rgba(243,156,18,0.2);
+}
+
+/* =========================================================
+   11) NUMBER BOARD (10 columns × 9 rows, 1–90)
+   ========================================================= */
+.number-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 380px;
+  background:
+    url("/images/numberboard.png") center / cover,
+    var(--color-panel-bg);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+  border: 3px solid var(--color-called);
+}
+
+.board-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  font-size: var(--fs-board-cell);
+  font-weight: 600;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-muted);
+  transition: background 0.2s, color 0.2s;
+}
+
+.board-cell.called {
+  background: var(--color-called);
+  color: var(--color-called-text);
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+.board-cell.just-called {
+  animation: cell-pop 0.35s ease-out;
+  box-shadow: 0 0 6px rgba(243,156,18,0.5);
+}
+
+@keyframes cell-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* =========================================================
+   12) GAME CONTROLS
+   ========================================================= */
+.game-controls {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(253, 246, 227, 0.85);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 10px;
+  color: var(--color-text-dark);
+}
+
+.draw-btn {
+  font-size: 0.95rem;
+  padding: 12px 18px;
+  max-width: 200px;
+}
+
+.claim-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  justify-content: center;
+  width: 100%;
+}
+
+.claim-btn {
+  flex: 1 1 0;
+  max-width: none;
+  padding: 8px 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--color-cream), var(--color-cream-dark));
+  color: var(--color-text-dark);
+  box-shadow: 0 2px 0 #9c8a5c, 0 3px 6px rgba(0,0,0,0.15);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.claim-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #9c8a5c; }
+
+.claim-btn.won {
+  background: linear-gradient(180deg, #2ecc71, #27ae60);
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.claim-btn.won::after { content: " ✓"; }
+
+.claim-btn.available {
+  background: linear-gradient(180deg, #f39c12, #e67e22);
+  color: #fff;
+  box-shadow: 0 2px 0 #d35400, 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.marked-count { font-size: var(--fs-body); opacity: 0.8; text-align: center; color: var(--color-text-dark); }
+
+.toggles-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-called);
+  cursor: pointer;
+}
+
+/* =========================================================
+   13) RESULTS VIEW
+   ========================================================= */
+.results-header { text-align: center; padding-top: 16px; }
+
+.results-title {
+  font-size: 1.3rem;
+  font-family: Georgia, serif;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.winner-summary {
+  width: 100%;
+  max-width: 340px;
+  background: var(--color-panel-bg);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.winner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 7px;
+  font-size: var(--fs-body);
+}
+
+.winner-row .pattern-name { font-weight: 700; }
+.winner-row .winner-name { color: var(--color-called); font-weight: 800; }
+.winner-row.unclaimed .winner-name { color: var(--color-text-muted); font-style: italic; }
+
+.results-actions {
+  display: flex;
+  gap: var(--gap-md);
+  justify-content: center;
+}
+
+.results-actions .btn { max-width: 150px; }
+
+/* =========================================================
+   14) MODAL OVERLAY
+   ========================================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-overlay[hidden] { display: none !important; }
+
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 20px;
+  width: min(320px, 88vw);
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+}
+
+.modal-box h3 { margin: 0 0 12px; font-size: 1.1rem; color: #333; }
+
+.modal-box input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  margin-bottom: 12px;
+  text-align: center;
+  color: #333;
+}
+
+.modal-box input:focus { border-color: var(--color-called); }
+.modal-box .btn { width: 100%; max-width: none; }
+
+/* =========================================================
+   15) UPDATE TOAST
+   ========================================================= */
+.update-toast, #update-toast {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,30,30,0.92);
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 9999;
+  font-weight: 700;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+#update-toast button, #update-refresh-btn {
+  background: linear-gradient(180deg, #51cf66, #2f9e44);
+  border: none;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+#update-toast[hidden], .update-toast[hidden] { display: none !important; }
+
+/* =========================================================
+   16) ORIENTATION OVERLAY
+   ========================================================= */
+.orientation-overlay { display: none; }
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .app { display: none !important; }
+  .orientation-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 1.05rem;
+    z-index: 9999;
+  }
+}
+
+/* =========================================================
+   17) RESPONSIVE: TABLET / DESKTOP (≥768px)
+   ========================================================= */
+@media (min-width: 768px) {
+  body { align-items: center; }
+
+  .app { max-width: 900px; }
+
+  .view-game {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr);
+    grid-template-rows: auto;
+    gap: var(--gap-lg);
+    align-items: start;
+  }
+
+  .number-board {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    max-width: 100%;
+    position: sticky;
+    top: 12px;
+    order: -1;
+  }
+
+  .ball-stage { grid-column: 2; grid-row: 1; }
+  .recent-calls { grid-column: 2; grid-row: 2; }
+  .ticket-container { grid-column: 2; grid-row: 3; }
+  .marked-count { grid-column: 2; grid-row: 4; }
+  .game-controls { grid-column: 2; grid-row: 5; }
+
+  :root { --ball-size: 110px; }
+
+  .board-cell { font-size: 13px; }
+  .board-cell.called { font-size: 14px; }
+  .ticket-cell { height: 40px; font-size: 15px; }
+  .claim-buttons { flex-wrap: nowrap; }
+  .claim-btn { font-size: 0.8rem; padding: 8px 12px; }
+}
+
+/* =========================================================
+   18) LARGE DESKTOP (≥1024px)
+   ========================================================= */
+@media (min-width: 1024px) {
+  .app { max-width: 1050px; }
+  .number-board { padding: 10px; }
+  .board-cell { font-size: 14px; }
+  .board-cell.called { font-size: 16px; }
+}
+
+/* =========================================================
+   19) ACCESSIBILITY
+   ========================================================= */
+:focus-visible { outline: 3px solid var(--color-called); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   20) UTILITIES
+   ========================================================= */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.game-toast {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(231,76,60,0.92);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  z-index: 999;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  animation: toast-fade 1.5s ease-out forwards;
+}
+
+@keyframes toast-fade {
+  0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}

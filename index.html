@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tambola – Indian Bingo</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Tambola (Housie / Indian Bingo) – play offline or online with friends. Mobile-first PWA."
+    />
+    <meta name="theme-color" content="#8b4513" />
+
+    <!-- PWA manifest and icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app">
+
+      <!-- ========== HOME SCREEN ========== -->
+      <section id="view-home" class="view view-home" aria-label="Home screen">
+        <header class="home-header">
+          <h1 class="game-title">🎱 Tambola</h1>
+          <p class="game-subtitle">Indian Bingo / Housie</p>
+        </header>
+
+        <div class="mode-selection" aria-label="Game mode selection">
+          <button id="btn-offline" class="btn primary mode-select-btn" type="button" aria-label="Play offline on one device">
+            🎲 Offline
+          </button>
+          <button id="btn-online" class="btn primary mode-select-btn" type="button" aria-label="Play online with friends">
+            🌐 Online
+          </button>
+        </div>
+
+        <!-- Offline setup (hidden until Offline selected) -->
+        <div id="offline-setup" class="offline-setup" hidden aria-label="Offline game setup">
+          <h2 class="setup-heading">Offline Setup</h2>
+          <label for="player-count-select" class="setup-label">Number of Players</label>
+          <div class="player-count-selector" role="group" aria-label="Select number of players">
+            <button class="player-count-btn" type="button" data-count="1" aria-label="1 player">1</button>
+            <button class="player-count-btn" type="button" data-count="2" aria-label="2 players">2</button>
+            <button class="player-count-btn active" type="button" data-count="3" aria-label="3 players">3</button>
+            <button class="player-count-btn" type="button" data-count="4" aria-label="4 players">4</button>
+            <button class="player-count-btn" type="button" data-count="5" aria-label="5 players">5</button>
+            <button class="player-count-btn" type="button" data-count="6" aria-label="6 players">6</button>
+          </div>
+          <button id="btn-start-offline" class="btn primary" type="button" aria-label="Start offline game">
+            Start Game
+          </button>
+        </div>
+
+        <!-- Online choice (hidden until Online selected) -->
+        <div id="online-choice" class="online-choice" hidden aria-label="Online game options">
+          <h2 class="setup-heading">Online Play</h2>
+          <button id="btn-create-room" class="btn primary" type="button" aria-label="Create a new game room">
+            🏠 Create Room
+          </button>
+          <button id="btn-join-room" class="btn secondary" type="button" aria-label="Join an existing game room">
+            🚪 Join Room
+          </button>
+          <div id="join-room-form" class="join-room-form" hidden>
+            <input
+              id="room-code-input"
+              type="text"
+              maxlength="6"
+              placeholder="Room Code"
+              autocomplete="off"
+              aria-label="Enter 6-character room code"
+            />
+            <input
+              id="player-name-input"
+              type="text"
+              maxlength="12"
+              placeholder="Your Name"
+              autocomplete="off"
+              aria-label="Enter your display name"
+            />
+            <button id="btn-submit-join" class="btn primary" type="button" aria-label="Join the room">
+              Join
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== LOBBY VIEW ========== -->
+      <section id="view-lobby" class="view view-lobby" hidden aria-label="Game lobby">
+        <header class="lobby-header">
+          <h2 class="lobby-title">Game Lobby</h2>
+          <p class="room-code-display" aria-label="Room code">
+            Room: <span id="lobby-room-code">------</span>
+          </p>
+        </header>
+
+        <ul id="player-list" class="player-list" aria-label="Players in lobby">
+          <!-- Populated dynamically -->
+        </ul>
+
+        <div class="lobby-actions">
+          <button id="btn-start-game" class="btn primary" type="button" hidden aria-label="Start the game (host only)">
+            Start Game
+          </button>
+          <p id="lobby-waiting" class="lobby-waiting">Waiting for host to start…</p>
+        </div>
+      </section>
+
+      <!-- ========== GAME BOARD VIEW ========== -->
+      <section id="view-game" class="view view-game" hidden aria-label="Tambola game board">
+
+        <!-- Spinning ball stage -->
+        <div class="ball-stage" aria-label="Number draw area">
+          <div id="ball-sphere" class="ball-sphere" role="img" aria-label="Drawn number ball">
+            <div class="ball-face ball-front"><span id="ball-number" class="ball-number"></span></div>
+            <div class="ball-face ball-back"></div>
+            <div class="ball-face ball-left"></div>
+            <div class="ball-face ball-right"></div>
+            <div class="ball-face ball-top"></div>
+            <div class="ball-face ball-bottom"></div>
+          </div>
+        </div>
+
+        <!-- Recent calls strip -->
+        <div id="recent-calls" class="recent-calls" aria-label="Last 5 drawn numbers" role="status" aria-live="polite">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Player ticket(s) container -->
+        <div id="ticket-container" class="ticket-container" aria-label="Player tickets">
+          <!-- Tickets rendered dynamically as 3×9 grids -->
+        </div>
+
+        <!-- Marked count -->
+        <p id="marked-count" class="marked-count" aria-label="Marked numbers count">
+          Marked: <span id="marked-count-value">0</span> / 15
+        </p>
+
+        <!-- Game controls -->
+        <div class="game-controls" aria-label="Game controls">
+          <button id="btn-draw" class="btn primary draw-btn" type="button" aria-label="Draw next number">
+            🎱 Draw Number
+          </button>
+
+          <!-- Claim buttons -->
+          <div id="claim-buttons" class="claim-buttons" aria-label="Claim winning patterns">
+            <button class="btn claim-btn" type="button" data-pattern="earlyFive" aria-label="Claim Early Five">
+              Early 5
+            </button>
+            <button class="btn claim-btn" type="button" data-pattern="firstLine" aria-label="Claim First Line">
+              1st Line
+            </button>
+            <button class="btn claim-btn" type="button" data-pattern="secondLine" aria-label="Claim Second Line">
+              2nd Line
+            </button>
+            <button class="btn claim-btn" type="button" data-pattern="thirdLine" aria-label="Claim Third Line">
+              3rd Line
+            </button>
+            <button class="btn claim-btn" type="button" data-pattern="fullHouse" aria-label="Claim Full House">
+              Full House
+            </button>
+          </div>
+
+          <!-- Toggles row -->
+          <div class="toggles-row">
+            <label class="toggle-label" for="auto-mark-toggle">
+              <input id="auto-mark-toggle" type="checkbox" aria-label="Toggle auto-mark mode" />
+              Auto-Mark
+            </label>
+            <label class="toggle-label" for="mute-toggle">
+              <input id="mute-toggle" type="checkbox" aria-label="Toggle sound mute" />
+              🔇 Mute
+            </label>
+          </div>
+        </div>
+
+        <!-- Number board: pushed to bottom as reference -->
+        <div id="number-board" class="number-board" aria-label="Number board showing 1 to 90" role="grid">
+          <!-- 9 columns × 10 rows grid rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- ========== RESULTS VIEW ========== -->
+      <section id="view-results" class="view view-results" hidden aria-label="Game results">
+        <header class="results-header">
+          <h2 class="results-title">🏆 Game Over!</h2>
+        </header>
+
+        <div id="winner-summary" class="winner-summary" aria-label="Winner summary">
+          <!-- Populated dynamically with pattern winners -->
+        </div>
+
+        <div class="results-actions">
+          <button id="btn-play-again" class="btn primary" type="button" aria-label="Play another round">
+            Play Again
+          </button>
+          <button id="btn-home" class="btn secondary" type="button" aria-label="Return to home screen">
+            Home
+          </button>
+        </div>
+      </section>
+
+    </div><!-- /.app -->
+
+    <!-- Update toast -->
+    <div id="update-toast" class="update-toast" hidden>
+      <span>A new version is available.</span>
+      <button id="update-refresh-btn" type="button">Update</button>
+    </div>
+
+    <!-- Orientation overlay for landscape mobile -->
+    <div class="orientation-overlay" aria-label="Orientation warning">
+      📱 Please rotate your phone to portrait mode to play.
+    </div>
+
+    <!-- Confetti library (async load, fallback CDN) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+      async
+      onerror="
+        var s=document.createElement('script');
+        s.src='https://unpkg.com/canvas-confetti@1.9.3/dist/confetti.browser.min.js';
+        s.async=true;
+        document.head.appendChild(s);
+      "
+    ></script>
+
+    <!-- 🔑 Firebase config and game logic -->
+    <script type="module" src="/src/firebase-config.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
