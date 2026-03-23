@@ -35,6 +35,7 @@ import {
 import {
   createRoom,
   joinRoom,
+  rejoinRoom,
   listenRoom,
   broadcastDraw,
   submitClaim,
@@ -90,6 +91,33 @@ const btnPlayAgain = document.getElementById('btn-play-again');
 const btnHome = document.getElementById('btn-home');
 
 /* ======= HELPERS ======= */
+
+/** Saves online session info to sessionStorage for reconnection after refresh. */
+function saveOnlineSession() {
+  if (gameMode === 'online' && roomCode != null && playerIndex != null) {
+    sessionStorage.setItem('tambola_session', JSON.stringify({
+      roomCode,
+      playerIndex,
+      isHost,
+    }));
+  }
+}
+
+/** Clears saved online session. */
+function clearOnlineSession() {
+  sessionStorage.removeItem('tambola_session');
+}
+
+/** Loads saved online session from sessionStorage. */
+function loadOnlineSession() {
+  try {
+    const raw = sessionStorage.getItem('tambola_session');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
 
 const PATTERN_LABELS = {
   earlyFive: 'Early Five',
@@ -685,6 +713,7 @@ function wireHomeScreen() {
       playerNames = [name.trim()];
       gameMode = 'online';
       setupLobby();
+      saveOnlineSession();
     } catch (err) {
       console.error('Failed to create room:', err);
       showToast('Failed to create room. Check your connection.');
@@ -721,6 +750,7 @@ function wireHomeScreen() {
       isHost = false;
       gameMode = 'online';
       setupLobby();
+      saveOnlineSession();
     } catch (err) {
       console.error('Failed to join room:', err);
       showToast('Failed to join room. Check your connection.');
@@ -786,6 +816,7 @@ function wireResults() {
 
   btnHome.addEventListener('click', () => {
     clearSavedGame();
+    clearOnlineSession();
     state = null;
     if (unsubscribeRoom) {
       unsubscribeRoom();
@@ -848,7 +879,97 @@ function registerServiceWorker() {
 
 /* ======= INITIALIZATION ======= */
 
-function init() {
+/** Attempts to rejoin an online room after page refresh. */
+async function checkOnlineSession() {
+  const session = loadOnlineSession();
+  if (!session) return false;
+
+  try {
+    const result = await rejoinRoom(session.roomCode, session.playerIndex);
+    if (!result.success) {
+      clearOnlineSession();
+      return false;
+    }
+
+    // Restore session state
+    roomCode = session.roomCode;
+    playerIndex = session.playerIndex;
+    isHost = session.isHost;
+    gameMode = 'online';
+
+    // Set up disconnect handler again
+    setupDisconnectHandler(roomCode, playerIndex);
+
+    if (result.status === 'lobby') {
+      setupLobby();
+    } else if (result.status === 'active') {
+      // Fetch full room data to rebuild game state
+      const roomRef = ref(db, `tambola-rooms/${roomCode}`);
+      const snapshot = await firebaseRetry(() => get(roomRef));
+      if (snapshot.exists()) {
+        const roomData = snapshot.val();
+
+        // Rebuild player names
+        if (roomData.players) {
+          const keys = Object.keys(roomData.players).sort();
+          playerNames = keys.map((k) => roomData.players[k].name || 'Unknown');
+        }
+
+        // Rebuild game state from tickets
+        if (roomData.tickets) {
+          const ticketKeys = Object.keys(roomData.tickets).sort();
+          const tickets = ticketKeys.map((k) => deserializeTicket(roomData.tickets[k]));
+          state = createGameState(tickets.length, tickets);
+          state.mode = 'online';
+          // Force auto-mark on during rejoin to catch up missed numbers
+          state.autoMark = true;
+          autoMarkToggle.checked = true;
+          lastKnownDrawIndex = 0;
+
+          // Apply drawn numbers
+          if (roomData.game && roomData.game.drawnNumbers) {
+            handleOnlineGameUpdate(roomData.game);
+          }
+        }
+
+        setupOnlineGameView();
+
+        // Start listening for further updates
+        if (unsubscribeRoom) unsubscribeRoom();
+        unsubscribeRoom = listenRoom(roomCode, {
+          onPlayersChange: (players) => {
+            const playerArr = [];
+            const keys = Object.keys(players).sort();
+            keys.forEach((key) => playerArr.push(players[key]));
+            playerNames = playerArr.map((p) => p.name || 'Unknown');
+          },
+          onStatusChange: async (status) => {
+            if (status === 'lobby') {
+              state = null;
+              lastKnownDrawIndex = 0;
+              setupLobby();
+            }
+          },
+          onGameUpdate: (gameData) => {
+            handleOnlineGameUpdate(gameData);
+          },
+          onMarksChange: () => {},
+        });
+      }
+    } else if (result.status === 'ended') {
+      clearOnlineSession();
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('Failed to rejoin room:', err);
+    clearOnlineSession();
+    return false;
+  }
+}
+
+async function init() {
   // Initialize audio on first interaction
   initAudio();
 
@@ -864,8 +985,13 @@ function init() {
   // Register service worker
   registerServiceWorker();
 
-  // Check for saved game to resume
-  checkResume();
+  // Try to rejoin online session first (survives page refresh)
+  const rejoined = await checkOnlineSession();
+
+  // If not rejoining online, check for saved offline game
+  if (!rejoined) {
+    checkResume();
+  }
 }
 
 // Start the app

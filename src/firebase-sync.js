@@ -158,6 +158,39 @@ export async function joinRoom(roomCode, playerName) {
 }
 
 /**
+ * Rejoins an existing room after a page refresh.
+ * Marks the player as connected again without checking game status.
+ * @param {string} roomCode - The room code
+ * @param {number} playerIndex - The player's index in the room
+ * @returns {Promise<{ success: boolean, status?: string, reason?: string }>}
+ */
+export async function rejoinRoom(roomCode, playerIndex) {
+  const roomRef = ref(db, `tambola-rooms/${roomCode}`);
+
+  const snapshot = await firebaseRetry(() => get(roomRef));
+
+  if (!snapshot.exists()) {
+    return { success: false, reason: 'Room no longer exists' };
+  }
+
+  const data = snapshot.val();
+  const playerKey = `player_${playerIndex}`;
+
+  if (!data.players || !data.players[playerKey]) {
+    return { success: false, reason: 'Player not found in room' };
+  }
+
+  // Mark as connected again
+  await firebaseRetry(() =>
+    update(ref(db, `tambola-rooms/${roomCode}/players/${playerKey}`), {
+      connected: true,
+    })
+  );
+
+  return { success: true, status: data.meta.status };
+}
+
+/**
  * Subscribes to real-time room changes via Firebase onValue.
  * @param {string} roomCode - The room code to listen to
  * @param {object} callbacks - Callback functions for different data changes
