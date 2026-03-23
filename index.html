@@ -49,9 +49,6 @@
             <button class="player-count-btn" type="button" data-count="1" aria-label="1 player">1</button>
             <button class="player-count-btn" type="button" data-count="2" aria-label="2 players">2</button>
             <button class="player-count-btn active" type="button" data-count="3" aria-label="3 players">3</button>
-            <button class="player-count-btn" type="button" data-count="4" aria-label="4 players">4</button>
-            <button class="player-count-btn" type="button" data-count="5" aria-label="5 players">5</button>
-            <button class="player-count-btn" type="button" data-count="6" aria-label="6 players">6</button>
           </div>
           <button id="btn-start-offline" class="btn primary" type="button" aria-label="Start offline game">
             Start Game
@@ -71,10 +68,11 @@
             <input
               id="room-code-input"
               type="text"
-              maxlength="6"
+              maxlength="4"
               placeholder="Room Code"
               autocomplete="off"
-              aria-label="Enter 6-character room code"
+              style="text-transform: uppercase;"
+              aria-label="Enter 4-character room code"
             />
             <input
               id="player-name-input"

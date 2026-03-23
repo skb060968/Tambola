@@ -52,7 +52,7 @@ export async function firebaseRetry(fn, maxRetries = 2, delayMs = 500) {
  */
 export function generateRoomCode() {
   let code = '';
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     const idx = Math.floor(Math.random() * ROOM_CODE_CHARSET.length);
     code += ROOM_CODE_CHARSET[idx];
   }
@@ -265,6 +265,34 @@ export async function endGame(roomCode) {
     update(ref(db, `tambola-rooms/${roomCode}/meta`), {
       status: 'ended',
       updatedAt: Date.now(),
+    })
+  );
+}
+
+/**
+ * Resets the room for a new round: clears game data, tickets, marks,
+ * and sets status back to "lobby". Players stay connected.
+ * @param {string} roomCode - The room code
+ */
+export async function resetRoom(roomCode) {
+  await firebaseRetry(() =>
+    update(ref(db, `tambola-rooms/${roomCode}`), {
+      'meta/status': 'lobby',
+      'meta/updatedAt': Date.now(),
+      tickets: {},
+      game: {
+        drawnNumbers: [],
+        currentNumber: null,
+        drawIndex: 0,
+        claims: {
+          earlyFive: { won: false },
+          firstLine: { won: false },
+          secondLine: { won: false },
+          thirdLine: { won: false },
+          fullHouse: { won: false },
+        },
+      },
+      marks: {},
     })
   );
 }

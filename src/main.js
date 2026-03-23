@@ -40,6 +40,7 @@ import {
   submitClaim,
   startGame,
   endGame,
+  resetRoom,
   setupDisconnectHandler,
   removePlayer,
   firebaseRetry,
@@ -407,6 +408,17 @@ function setupLobby() {
     },
 
     onStatusChange: async (status) => {
+      if (status === 'lobby' && !isHost) {
+        // Room reset for new round — go back to lobby
+        state = null;
+        lastKnownDrawIndex = 0;
+        switchView('lobby');
+        lobbyRoomCode.textContent = roomCode;
+        btnStartGame.hidden = true;
+        lobbyWaiting.hidden = false;
+        return;
+      }
+
       if (status === 'active' && !isHost && !state) {
         // Game started by host — fetch tickets and build local state
         try {
@@ -689,8 +701,8 @@ function wireHomeScreen() {
     const code = roomCodeInput.value.trim().toUpperCase();
     const name = playerNameInput.value.trim();
 
-    if (!code || code.length !== 6) {
-      showToast('Please enter a valid 6-character room code');
+    if (!code || code.length !== 4) {
+      showToast('Please enter a valid 4-character room code');
       return;
     }
     if (!name) {
@@ -752,12 +764,22 @@ function wireGameControls() {
 /* ======= RESULTS WIRING ======= */
 
 function wireResults() {
-  btnPlayAgain.addEventListener('click', () => {
+  btnPlayAgain.addEventListener('click', async () => {
     clearSavedGame();
     if (gameMode === 'offline') {
       startOfflineGame();
     } else {
-      // Online: go back to lobby
+      // Online: reset room to lobby, keep players, host starts new round
+      state = null;
+      lastKnownDrawIndex = 0;
+      if (isHost && roomCode) {
+        try {
+          await resetRoom(roomCode);
+        } catch (err) {
+          console.error('Failed to reset room:', err);
+          showToast('Failed to reset room.');
+        }
+      }
       setupLobby();
     }
   });
