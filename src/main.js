@@ -87,9 +87,14 @@ const lobbyWaiting = document.getElementById('lobby-waiting');
 const btnDraw = document.getElementById('btn-draw');
 const autoMarkToggle = document.getElementById('auto-mark-toggle');
 const muteToggle = document.getElementById('mute-toggle');
+const autoDrawControls = document.getElementById('auto-draw-controls');
+const autoDrawToggle = document.getElementById('auto-draw-toggle');
+const autoDrawSpeed = document.getElementById('auto-draw-speed');
 
 const btnPlayAgain = document.getElementById('btn-play-again');
 const btnHome = document.getElementById('btn-home');
+
+let autoDrawTimer = null;
 
 /* ======= HELPERS ======= */
 
@@ -167,6 +172,28 @@ function showNameModal(title = 'Enter your name') {
     submitBtn.addEventListener('click', submit);
     input.addEventListener('keydown', onKey);
   });
+}
+
+/** Starts the auto-draw timer. */
+function startAutoDraw() {
+  stopAutoDraw();
+  const interval = parseInt(autoDrawSpeed.value, 10) * 1000;
+  autoDrawTimer = setInterval(() => {
+    if (!state || state.gameOver) { stopAutoDraw(); return; }
+    if (gameMode === 'offline') {
+      handleOfflineDraw();
+    } else if (isHost) {
+      handleOnlineDraw();
+    }
+  }, interval);
+}
+
+/** Stops the auto-draw timer. */
+function stopAutoDraw() {
+  if (autoDrawTimer) {
+    clearInterval(autoDrawTimer);
+    autoDrawTimer = null;
+  }
 }
 
 /** Returns an array of player display names for the current game. */
@@ -394,6 +421,9 @@ function startOfflineGame() {
   resetBall();
   updateGameUI();
 
+  // Show auto-draw controls for offline
+  if (autoDrawControls) autoDrawControls.hidden = false;
+
   // Enable draw button
   btnDraw.disabled = false;
   btnDraw.hidden = false;
@@ -572,8 +602,10 @@ function setupOnlineGameView() {
   if (isHost) {
     btnDraw.hidden = false;
     btnDraw.disabled = false;
+    if (autoDrawControls) autoDrawControls.hidden = false;
   } else {
     btnDraw.hidden = true;
+    if (autoDrawControls) autoDrawControls.hidden = true;
   }
 
   if (state) updateGameUI();
@@ -808,6 +840,31 @@ function wireLobby() {
   btnStartGame.addEventListener('click', () => {
     handleHostStartGame();
   });
+
+  const btnShareRoom = document.getElementById('btn-share-room');
+  if (btnShareRoom) {
+    btnShareRoom.addEventListener('click', async () => {
+      if (!roomCode) return;
+      const shareText = `Join my Housie game! Room code: ${roomCode}`;
+      const shareUrl = window.location.origin;
+
+      // Try native share API (mobile)
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Housie Game', text: shareText, url: shareUrl });
+          return;
+        } catch (_) {}
+      }
+
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        showToast('Room code copied!');
+      } catch (_) {
+        showToast(`Room code: ${roomCode}`);
+      }
+    });
+  }
 }
 
 /* ======= GAME CONTROLS WIRING ======= */
@@ -833,6 +890,26 @@ function wireGameControls() {
   muteToggle.addEventListener('change', () => {
     toggleMute();
   });
+
+  // Auto-draw toggle
+  if (autoDrawToggle) {
+    autoDrawToggle.addEventListener('change', () => {
+      if (autoDrawToggle.checked) {
+        startAutoDraw();
+      } else {
+        stopAutoDraw();
+      }
+    });
+  }
+
+  // Auto-draw speed change
+  if (autoDrawSpeed) {
+    autoDrawSpeed.addEventListener('change', () => {
+      if (autoDrawToggle && autoDrawToggle.checked) {
+        startAutoDraw(); // restart with new interval
+      }
+    });
+  }
 }
 
 /* ======= RESULTS WIRING ======= */
@@ -840,6 +917,8 @@ function wireGameControls() {
 function wireResults() {
   btnPlayAgain.addEventListener('click', async () => {
     clearSavedGame();
+    stopAutoDraw();
+    if (autoDrawToggle) autoDrawToggle.checked = false;
     if (gameMode === 'offline') {
       startOfflineGame();
     } else {
@@ -861,6 +940,8 @@ function wireResults() {
   btnHome.addEventListener('click', () => {
     clearSavedGame();
     clearOnlineSession();
+    stopAutoDraw();
+    if (autoDrawToggle) autoDrawToggle.checked = false;
     state = null;
     if (unsubscribeRoom) {
       unsubscribeRoom();

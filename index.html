@@ -102,6 +102,9 @@
         </ul>
 
         <div class="lobby-actions">
+          <button id="btn-share-room" class="btn secondary" type="button" aria-label="Share room code">
+            📋 Share Code
+          </button>
           <button id="btn-start-game" class="btn primary" type="button" hidden aria-label="Start the game (host only)">
             Start Game
           </button>
@@ -162,6 +165,20 @@
             <button class="btn claim-btn" type="button" data-pattern="fullHouse" aria-label="Claim Full House">
               Full House
             </button>
+          </div>
+
+          <!-- Auto-draw timer (host/offline only) -->
+          <div id="auto-draw-controls" class="auto-draw-controls" hidden>
+            <label class="toggle-label" for="auto-draw-toggle">
+              <input id="auto-draw-toggle" type="checkbox" aria-label="Toggle auto-draw timer" />
+              Auto-Draw
+            </label>
+            <select id="auto-draw-speed" aria-label="Auto-draw interval">
+              <option value="5">5s</option>
+              <option value="8">8s</option>
+              <option value="10" selected>10s</option>
+              <option value="15">15s</option>
+            </select>
           </div>
 
           <!-- Toggles row -->
