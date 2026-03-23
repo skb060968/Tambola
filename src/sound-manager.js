@@ -95,6 +95,10 @@ async function unlockHandler() {
 export function initAudio() {
   if (initialized) return;
 
+  // Pre-load sound buffers immediately (will work once AudioContext is unlocked)
+  getAudioContext();
+  preloadSounds();
+
   const events = ['click', 'touchstart', 'keydown'];
   for (const event of events) {
     document.addEventListener(event, unlockHandler, { once: true });

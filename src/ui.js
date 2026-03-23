@@ -145,6 +145,16 @@ export function renderSpinningBall(number, onComplete) {
 }
 
 /**
+ * Resets the ball to blank state (no number shown).
+ */
+export function resetBall() {
+  const sphere = document.getElementById('ball-sphere');
+  const ballNumber = document.getElementById('ball-number');
+  if (sphere) sphere.classList.remove('spinning', 'settled');
+  if (ballNumber) ballNumber.textContent = '';
+}
+
+/**
  * Renders the last 5 drawn numbers in the recent-calls strip.
  * Most recent number appears first (largest/brightest via CSS :first-child).
  * @param {number[]} lastFive - Array of last 5 numbers in draw order

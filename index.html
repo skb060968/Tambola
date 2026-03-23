@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Tambola – Indian Bingo</title>
+    <title>HOUSIE</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -204,6 +204,15 @@
       </section>
 
     </div><!-- /.app -->
+
+    <!-- Name input modal (replaces browser prompt) -->
+    <div id="name-modal" class="modal-overlay" hidden>
+      <div class="modal-box">
+        <h3 id="name-modal-title">Enter your name</h3>
+        <input id="name-modal-input" type="text" maxlength="12" placeholder="Your name" autocomplete="off" />
+        <button id="name-modal-submit" class="btn primary" type="button">OK</button>
+      </div>
+    </div>
 
     <!-- Update toast -->
     <div id="update-toast" class="update-toast" hidden>

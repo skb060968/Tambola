@@ -22,6 +22,7 @@ import {
   renderTicket,
   renderNumberBoard,
   renderSpinningBall,
+  resetBall,
   renderRecentCalls,
   showCelebration,
   showClaimButtons,
@@ -126,6 +127,47 @@ const PATTERN_LABELS = {
   thirdLine: 'Third Line',
   fullHouse: 'Full House',
 };
+
+/** Shows a custom name input modal. Returns a promise that resolves with the name or null. */
+function showNameModal(title = 'Enter your name') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('name-modal');
+    const input = document.getElementById('name-modal-input');
+    const submitBtn = document.getElementById('name-modal-submit');
+    const titleEl = document.getElementById('name-modal-title');
+
+    if (!modal || !input || !submitBtn) {
+      resolve(prompt(title));
+      return;
+    }
+
+    titleEl.textContent = title;
+    input.value = '';
+    modal.hidden = false;
+    input.focus();
+
+    function submit() {
+      const val = input.value.trim();
+      if (!val) { input.focus(); return; }
+      modal.hidden = true;
+      cleanup();
+      resolve(val);
+    }
+
+    function onKey(e) {
+      if (e.key === 'Enter') submit();
+      if (e.key === 'Escape') { modal.hidden = true; cleanup(); resolve(null); }
+    }
+
+    function cleanup() {
+      submitBtn.removeEventListener('click', submit);
+      input.removeEventListener('keydown', onKey);
+    }
+
+    submitBtn.addEventListener('click', submit);
+    input.addEventListener('keydown', onKey);
+  });
+}
 
 /** Returns an array of player display names for the current game. */
 function getPlayerNames() {
@@ -349,6 +391,7 @@ function startOfflineGame() {
   state.autoMark = autoMarkToggle.checked;
 
   switchView('game');
+  resetBall();
   updateGameUI();
 
   // Enable draw button
@@ -515,6 +558,7 @@ async function handleHostStartGame() {
 /** Sets up the game view for online play. */
 function setupOnlineGameView() {
   switchView('game');
+  resetBall();
 
   // If not host, we need to reconstruct state from Firebase data
   // The listenRoom callback will provide ticket data
@@ -702,15 +746,15 @@ function wireHomeScreen() {
 
   // Create room
   btnCreateRoom.addEventListener('click', async () => {
-    const name = prompt('Enter your name:');
-    if (!name || !name.trim()) return;
+    const name = await showNameModal('Enter your name');
+    if (!name) return;
 
     try {
-      const result = await createRoom(name.trim());
+      const result = await createRoom(name);
       roomCode = result.roomCode;
       playerIndex = result.playerIndex;
       isHost = true;
-      playerNames = [name.trim()];
+      playerNames = [name];
       gameMode = 'online';
       setupLobby();
       saveOnlineSession();
