@@ -406,3 +406,36 @@ export function renderLobbyPlayers(players, isHost, onRemove) {
     list.appendChild(li);
   });
 }
+
+/**
+ * Renders ready indicators on the results screen.
+ * Shows a circle for each player — green if they clicked "Play Again".
+ * @param {string[]} playerNames - Array of player display names
+ * @param {Set<number>|number[]} readyPlayers - Set or array of player indices who are ready
+ */
+export function renderReadyIndicators(playerNames, readyPlayers) {
+  const container = document.getElementById('ready-indicators');
+  if (!container) return;
+
+  container.hidden = false;
+  container.innerHTML = '';
+
+  const readySet = readyPlayers instanceof Set ? readyPlayers : new Set(readyPlayers);
+
+  playerNames.forEach((name, index) => {
+    const dot = document.createElement('div');
+    dot.className = 'ready-dot';
+    if (readySet.has(index)) dot.classList.add('ready');
+
+    const circle = document.createElement('div');
+    circle.className = 'dot';
+
+    const label = document.createElement('span');
+    label.className = 'dot-name';
+    label.textContent = name;
+
+    dot.appendChild(circle);
+    dot.appendChild(label);
+    container.appendChild(dot);
+  });
+}

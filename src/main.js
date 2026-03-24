@@ -32,6 +32,7 @@ import {
   showToast,
   renderWinnerSummary,
   renderLobbyPlayers,
+  renderReadyIndicators,
 } from './ui.js';
 import {
   createRoom,
@@ -226,6 +227,40 @@ function checkGameOver() {
 /** Switches to the results view and renders the winner summary. */
 function showResults() {
   renderWinnerSummary(state.claims, getPlayerNames());
+
+  // Reset Play Again button state
+  btnPlayAgain.disabled = false;
+  btnPlayAgain.textContent = 'Play Again';
+
+  // In online mode, show ready indicators and listen for ready signals
+  const readyContainer = document.getElementById('ready-indicators');
+  if (gameMode === 'online' && roomCode) {
+    renderReadyIndicators(getPlayerNames(), []);
+
+    // Listen for ready signals from Firebase
+    const { ref: dbRef, onValue: dbOnValue, off: dbOff } = window._fbImports || {};
+    import('firebase/database').then(({ ref: r, onValue: ov, off: o }) => {
+      const readyRef = r(db, `tambola-rooms/${roomCode}/ready`);
+      const readyHandler = (snapshot) => {
+        const data = snapshot.val() || {};
+        const readyIndices = Object.keys(data)
+          .filter((k) => data[k] === true)
+          .map((k) => parseInt(k.replace('player_', ''), 10))
+          .filter((n) => !isNaN(n));
+        renderReadyIndicators(getPlayerNames(), readyIndices);
+      };
+      ov(readyRef, readyHandler);
+
+      // Store cleanup for when we leave results
+      window._readyCleanup = () => {
+        o(readyRef, 'value', readyHandler);
+        window._readyCleanup = null;
+      };
+    });
+  } else if (readyContainer) {
+    readyContainer.hidden = true;
+  }
+
   switchView('results');
 }
 
@@ -579,7 +614,7 @@ function setupLobby() {
       switchView('home');
       offlineSetup.hidden = true;
       onlineChoice.hidden = true;
-      showToast('Host has left. Room closed.');
+      showToast('Host has left. Room closed.', 3000);
     },
   });
 }
@@ -1000,11 +1035,12 @@ function wireResults() {
     if (autoDrawToggle) autoDrawToggle.checked = false;
     if (gameMode === 'offline') {
       startOfflineGame();
-    } else {
-      // Online: reset room to lobby, keep players, host starts new round
+    } else if (isHost) {
+      // Host: clean up ready listener, reset room to lobby
+      if (window._readyCleanup) window._readyCleanup();
       state = null;
       lastKnownDrawIndex = 0;
-      if (isHost && roomCode) {
+      if (roomCode) {
         try {
           await resetRoom(roomCode);
         } catch (err) {
@@ -1013,14 +1049,45 @@ function wireResults() {
         }
       }
       setupLobby();
+    } else {
+      // Non-host player: signal readiness via Firebase
+      if (roomCode && playerIndex != null) {
+        try {
+          const { ref: dbRef, update: dbUpdate } = await import('firebase/database');
+          const readyRef = dbRef(db, `tambola-rooms/${roomCode}/ready`);
+          await dbUpdate(readyRef, { [`player_${playerIndex}`]: true });
+        } catch (_) {}
+      }
+      btnPlayAgain.disabled = true;
+      btnPlayAgain.textContent = '✓ Ready';
+      showToast('Waiting for host to start new round...');
     }
   });
 
-  btnHome.addEventListener('click', () => {
+  btnHome.addEventListener('click', async () => {
     clearSavedGame();
     clearOnlineSession();
     stopAutoDraw();
     if (autoDrawToggle) autoDrawToggle.checked = false;
+    if (window._readyCleanup) window._readyCleanup();
+
+    // Remove player from online room before leaving
+    if (gameMode === 'online' && roomCode) {
+      if (isHost) {
+        // Host leaving: delete the entire room
+        try {
+          const { ref: dbRef, remove: dbRemove } = await import('firebase/database');
+          const roomRef = dbRef(db, `tambola-rooms/${roomCode}`);
+          await dbRemove(roomRef);
+        } catch (_) {}
+      } else if (playerIndex != null) {
+        // Player leaving: remove themselves
+        try {
+          await removePlayer(roomCode, playerIndex);
+        } catch (_) {}
+      }
+    }
+
     state = null;
     if (unsubscribeRoom) {
       unsubscribeRoom();

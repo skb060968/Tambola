@@ -330,6 +330,7 @@ export async function resetRoom(roomCode) {
         },
       },
       marks: {},
+      ready: {},
     })
   );
 }
