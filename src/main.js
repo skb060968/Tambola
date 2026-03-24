@@ -98,10 +98,10 @@ let autoDrawTimer = null;
 
 /* ======= HELPERS ======= */
 
-/** Saves online session info to sessionStorage for reconnection after refresh. */
+/** Saves online session info to localStorage for reconnection after app close/refresh. */
 function saveOnlineSession() {
   if (gameMode === 'online' && roomCode != null && playerIndex != null) {
-    sessionStorage.setItem('tambola_session', JSON.stringify({
+    localStorage.setItem('tambola_session', JSON.stringify({
       roomCode,
       playerIndex,
       isHost,
@@ -111,13 +111,13 @@ function saveOnlineSession() {
 
 /** Clears saved online session. */
 function clearOnlineSession() {
-  sessionStorage.removeItem('tambola_session');
+  localStorage.removeItem('tambola_session');
 }
 
-/** Loads saved online session from sessionStorage. */
+/** Loads saved online session from localStorage. */
 function loadOnlineSession() {
   try {
-    const raw = sessionStorage.getItem('tambola_session');
+    const raw = localStorage.getItem('tambola_session');
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (_) {
@@ -762,6 +762,25 @@ function wireHomeScreen() {
     offlineSetup.hidden = true;
   });
 
+  // Back buttons
+  const btnBackOffline = document.getElementById('btn-back-offline');
+  const btnBackOnline = document.getElementById('btn-back-online');
+
+  if (btnBackOffline) {
+    btnBackOffline.addEventListener('click', () => {
+      offlineSetup.hidden = true;
+    });
+  }
+
+  if (btnBackOnline) {
+    btnBackOnline.addEventListener('click', () => {
+      onlineChoice.hidden = true;
+      joinRoomForm.hidden = true;
+      btnCreateRoom.hidden = false;
+      btnJoinRoom.hidden = false;
+    });
+  }
+
   // Player count selection
   playerCountBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -796,9 +815,11 @@ function wireHomeScreen() {
     }
   });
 
-  // Show join form
+  // Show join form, hide create button
   btnJoinRoom.addEventListener('click', () => {
     joinRoomForm.hidden = false;
+    btnCreateRoom.hidden = true;
+    btnJoinRoom.hidden = true;
   });
 
   // Submit join
@@ -959,6 +980,8 @@ function wireResults() {
     offlineSetup.hidden = true;
     onlineChoice.hidden = true;
     joinRoomForm.hidden = true;
+    btnCreateRoom.hidden = false;
+    btnJoinRoom.hidden = false;
   });
 }
 
