@@ -198,13 +198,17 @@ export async function rejoinRoom(roomCode, playerIndex) {
  * @param {Function} [callbacks.onGameUpdate] - Called when game data changes
  * @param {Function} [callbacks.onStatusChange] - Called when room status changes
  * @param {Function} [callbacks.onMarksChange] - Called when marks data changes
+ * @param {Function} [callbacks.onRoomDeleted] - Called when the room is deleted
  * @returns {Function} Unsubscribe function to stop listening
  */
 export function listenRoom(roomCode, callbacks) {
   const roomRef = ref(db, `tambola-rooms/${roomCode}`);
 
   const handler = (snapshot) => {
-    if (!snapshot.exists()) return;
+    if (!snapshot.exists()) {
+      if (callbacks.onRoomDeleted) callbacks.onRoomDeleted();
+      return;
+    }
     const data = snapshot.val();
 
     if (callbacks.onPlayersChange && data.players) {

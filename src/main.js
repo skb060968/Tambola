@@ -139,6 +139,7 @@ function showNameModal(title = 'Enter your name') {
     const modal = document.getElementById('name-modal');
     const input = document.getElementById('name-modal-input');
     const submitBtn = document.getElementById('name-modal-submit');
+    const cancelBtn = document.getElementById('name-modal-cancel');
     const titleEl = document.getElementById('name-modal-title');
 
     if (!modal || !input || !submitBtn) {
@@ -159,17 +160,25 @@ function showNameModal(title = 'Enter your name') {
       resolve(val);
     }
 
+    function cancel() {
+      modal.hidden = true;
+      cleanup();
+      resolve(null);
+    }
+
     function onKey(e) {
       if (e.key === 'Enter') submit();
-      if (e.key === 'Escape') { modal.hidden = true; cleanup(); resolve(null); }
+      if (e.key === 'Escape') cancel();
     }
 
     function cleanup() {
       submitBtn.removeEventListener('click', submit);
+      if (cancelBtn) cancelBtn.removeEventListener('click', cancel);
       input.removeEventListener('keydown', onKey);
     }
 
     submitBtn.addEventListener('click', submit);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancel);
     input.addEventListener('keydown', onKey);
   });
 }
@@ -556,6 +565,22 @@ function setupLobby() {
     onMarksChange: () => {
       // Marks sync handled via onGameUpdate for simplicity
     },
+
+    onRoomDeleted: () => {
+      // Host deleted the room — notify and send everyone home
+      if (unsubscribeRoom) { unsubscribeRoom(); unsubscribeRoom = null; }
+      clearOnlineSession();
+      roomCode = null;
+      playerIndex = null;
+      isHost = false;
+      playerNames = [];
+      gameMode = 'offline';
+      state = null;
+      switchView('home');
+      offlineSetup.hidden = true;
+      onlineChoice.hidden = true;
+      showToast('Host has left. Room closed.');
+    },
   });
 }
 
@@ -861,6 +886,39 @@ function wireLobby() {
   btnStartGame.addEventListener('click', () => {
     handleHostStartGame();
   });
+
+  const btnLeaveLobby = document.getElementById('btn-leave-lobby');
+  if (btnLeaveLobby) {
+    btnLeaveLobby.addEventListener('click', async () => {
+      if (isHost && roomCode) {
+        // Host leaving: delete the entire room
+        try {
+          const { ref: dbRef, remove: dbRemove } = await import('firebase/database');
+          const roomRef = dbRef(db, `tambola-rooms/${roomCode}`);
+          await dbRemove(roomRef);
+        } catch (_) {}
+      } else if (roomCode && playerIndex != null) {
+        // Player leaving: just remove themselves
+        try {
+          await removePlayer(roomCode, playerIndex);
+        } catch (_) {}
+      }
+      // Clean up local state
+      if (unsubscribeRoom) { unsubscribeRoom(); unsubscribeRoom = null; }
+      clearOnlineSession();
+      roomCode = null;
+      playerIndex = null;
+      isHost = false;
+      playerNames = [];
+      gameMode = 'offline';
+      switchView('home');
+      offlineSetup.hidden = true;
+      onlineChoice.hidden = true;
+      joinRoomForm.hidden = true;
+      btnCreateRoom.hidden = false;
+      btnJoinRoom.hidden = false;
+    });
+  }
 
   const btnShareRoom = document.getElementById('btn-share-room');
   if (btnShareRoom) {
