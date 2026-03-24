@@ -279,9 +279,17 @@ export async function submitClaim(roomCode, playerIndex, pattern) {
  * @param {number[][][]} tickets - Array of tickets, one per player
  */
 export async function startGame(roomCode, tickets) {
+  // Get actual player keys from Firebase to map tickets correctly
+  const playersRef = ref(db, `tambola-rooms/${roomCode}/players`);
+  const snapshot = await firebaseRetry(() => get(playersRef));
+  const players = snapshot.val() || {};
+  const playerKeys = Object.keys(players).sort();
+
   const serializedTickets = {};
-  tickets.forEach((ticket, index) => {
-    serializedTickets[`player_${index}`] = serializeTicket(ticket);
+  playerKeys.forEach((key, index) => {
+    if (index < tickets.length) {
+      serializedTickets[key] = serializeTicket(tickets[index]);
+    }
   });
 
   await firebaseRetry(() =>

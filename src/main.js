@@ -572,13 +572,32 @@ function setupLobby() {
           if (snapshot.exists()) {
             const roomData = snapshot.val();
             const ticketStrings = roomData.tickets || {};
-            const playerKeys = Object.keys(ticketStrings).sort();
-            const tickets = playerKeys.map((key) => deserializeTicket(ticketStrings[key]));
+            const ticketKeys = Object.keys(ticketStrings).sort();
+            const tickets = ticketKeys.map((key) => deserializeTicket(ticketStrings[key]));
+
+            // Map this player's Firebase key to local array index
+            const myKey = `player_${playerIndex}`;
+            const myLocalIndex = ticketKeys.indexOf(myKey);
+            if (myLocalIndex === -1) {
+              showToast('Your ticket was not found.');
+              return;
+            }
 
             state = createGameState(tickets.length, tickets);
             state.mode = 'online';
             state.autoMark = autoMarkToggle.checked;
             lastKnownDrawIndex = 0;
+
+            // Update playerIndex to local array index for UI rendering
+            playerIndex = myLocalIndex;
+
+            // Rebuild player names from sorted keys
+            if (roomData.players) {
+              playerNames = ticketKeys.map((k) => {
+                const p = roomData.players[k];
+                return p ? p.name || 'Unknown' : 'Unknown';
+              });
+            }
 
             // Apply any already-drawn numbers
             if (roomData.game && roomData.game.drawnNumbers) {
@@ -1192,6 +1211,22 @@ async function checkOnlineSession() {
         if (roomData.tickets) {
           const ticketKeys = Object.keys(roomData.tickets).sort();
           const tickets = ticketKeys.map((k) => deserializeTicket(roomData.tickets[k]));
+
+          // Map this player's Firebase key to local array index
+          const myKey = `player_${playerIndex}`;
+          const myLocalIndex = ticketKeys.indexOf(myKey);
+          if (myLocalIndex !== -1) {
+            playerIndex = myLocalIndex;
+          }
+
+          // Rebuild player names from ticket keys
+          if (roomData.players) {
+            playerNames = ticketKeys.map((k) => {
+              const p = roomData.players[k];
+              return p ? p.name || 'Unknown' : 'Unknown';
+            });
+          }
+
           state = createGameState(tickets.length, tickets);
           state.mode = 'online';
           // Force auto-mark on during rejoin to catch up missed numbers
