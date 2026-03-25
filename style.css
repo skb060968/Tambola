@@ -316,14 +316,8 @@ body {
   height: 100%;
   position: relative;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 30%, transparent 60%),
-    radial-gradient(ellipse 100% 40% at 50% 48%, var(--color-called) 0%, rgba(243,156,18,0.2) 80%, transparent 100%),
-    radial-gradient(circle at 50% 55%, #f5f0e0 0%, #e0d0b0 60%, #b89a6a 100%);
-  box-shadow:
-    0 8px 24px rgba(0,0,0,0.45),
-    inset 0 -8px 20px rgba(0,0,0,0.2),
-    inset 0 6px 14px rgba(255,255,255,0.3);
+  background: url("/images/ball.png") center / contain no-repeat;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -738,6 +732,11 @@ body {
 .ready-dot.ready .dot {
   background: var(--color-marked);
   border-color: var(--color-marked);
+}
+
+.ready-dot.left .dot {
+  background: var(--color-error);
+  border-color: var(--color-error);
 }
 
 .ready-dot .dot-name {

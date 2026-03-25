@@ -231,6 +231,7 @@ function showResults() {
   // Reset Play Again button state
   btnPlayAgain.disabled = false;
   btnPlayAgain.textContent = 'Play Again';
+  btnPlayAgain.dataset.hostReady = '';
 
   // In online mode, show ready indicators and listen for ready signals
   const readyContainer = document.getElementById('ready-indicators');
@@ -247,7 +248,11 @@ function showResults() {
           .filter((k) => data[k] === true)
           .map((k) => parseInt(k.replace('player_', ''), 10))
           .filter((n) => !isNaN(n));
-        renderReadyIndicators(getPlayerNames(), readyIndices);
+        const leftIndices = Object.keys(data)
+          .filter((k) => data[k] === 'left')
+          .map((k) => parseInt(k.replace('player_', ''), 10))
+          .filter((n) => !isNaN(n));
+        renderReadyIndicators(getPlayerNames(), readyIndices, leftIndices);
       };
       ov(readyRef, readyHandler);
 
@@ -467,6 +472,9 @@ function startOfflineGame() {
 
   // Show auto-draw controls for offline
   if (autoDrawControls) autoDrawControls.hidden = false;
+  // Show End Game for offline too
+  const btnEndGame = document.getElementById('btn-end-game');
+  if (btnEndGame) btnEndGame.hidden = false;
 
   // Enable draw button
   btnDraw.disabled = false;
@@ -561,6 +569,15 @@ function setupLobby() {
         lobbyRoomCode.textContent = roomCode;
         btnStartGame.hidden = true;
         lobbyWaiting.hidden = false;
+        return;
+      }
+
+      if (status === 'ended' && !isHost && state) {
+        // Host ended the game midway — go to results
+        stopAutoDraw();
+        state.gameOver = true;
+        showToast('Host ended the game');
+        showResults();
         return;
       }
 
@@ -678,13 +695,17 @@ function setupOnlineGameView() {
     btnDraw.disabled = true;
   }
 
+  const btnEndGame = document.getElementById('btn-end-game');
+
   if (isHost) {
     btnDraw.hidden = false;
     btnDraw.disabled = false;
     if (autoDrawControls) autoDrawControls.hidden = false;
+    if (btnEndGame) btnEndGame.hidden = false;
   } else {
     btnDraw.hidden = true;
     if (autoDrawControls) autoDrawControls.hidden = true;
+    if (btnEndGame) btnEndGame.hidden = true;
   }
 
   if (state) updateGameUI();
@@ -1043,6 +1064,26 @@ function wireGameControls() {
       }
     });
   }
+
+  // End Game button (host only)
+  const btnEndGame = document.getElementById('btn-end-game');
+  if (btnEndGame) {
+    btnEndGame.addEventListener('click', async () => {
+      if (!isHost || !state) return;
+      stopAutoDraw();
+      if (autoDrawToggle) autoDrawToggle.checked = false;
+      state.gameOver = true;
+
+      if (gameMode === 'online' && roomCode) {
+        try {
+          await endGame(roomCode);
+        } catch (_) {}
+      }
+
+      if (gameMode === 'offline') saveGameState(state);
+      showResults();
+    });
+  }
 }
 
 /* ======= RESULTS WIRING ======= */
@@ -1055,19 +1096,34 @@ function wireResults() {
     if (gameMode === 'offline') {
       startOfflineGame();
     } else if (isHost) {
-      // Host: clean up ready listener, reset room to lobby
-      if (window._readyCleanup) window._readyCleanup();
-      state = null;
-      lastKnownDrawIndex = 0;
-      if (roomCode) {
-        try {
-          await resetRoom(roomCode);
-        } catch (err) {
-          console.error('Failed to reset room:', err);
-          showToast('Failed to reset room.');
+      // Host: first click signals readiness, second click resets room
+      if (!btnPlayAgain.dataset.hostReady) {
+        // First click: signal readiness
+        btnPlayAgain.dataset.hostReady = 'true';
+        btnPlayAgain.textContent = '▶ Start New Round';
+        if (roomCode) {
+          try {
+            const { ref: dbRef, update: dbUpdate } = await import('firebase/database');
+            const readyRef = dbRef(db, `tambola-rooms/${roomCode}/ready`);
+            await dbUpdate(readyRef, { [`player_${playerIndex}`]: true });
+          } catch (_) {}
         }
+      } else {
+        // Second click: reset room to lobby
+        if (window._readyCleanup) window._readyCleanup();
+        btnPlayAgain.dataset.hostReady = '';
+        state = null;
+        lastKnownDrawIndex = 0;
+        if (roomCode) {
+          try {
+            await resetRoom(roomCode);
+          } catch (err) {
+            console.error('Failed to reset room:', err);
+            showToast('Failed to reset room.');
+          }
+        }
+        setupLobby();
       }
-      setupLobby();
     } else {
       // Non-host player: signal readiness via Firebase
       if (roomCode && playerIndex != null) {
@@ -1092,6 +1148,15 @@ function wireResults() {
 
     // Remove player from online room before leaving
     if (gameMode === 'online' && roomCode) {
+      // Signal that this player left (red circle for others)
+      if (playerIndex != null) {
+        try {
+          const { ref: dbRef, update: dbUpdate } = await import('firebase/database');
+          const readyRef = dbRef(db, `tambola-rooms/${roomCode}/ready`);
+          await dbUpdate(readyRef, { [`player_${playerIndex}`]: 'left' });
+        } catch (_) {}
+      }
+
       if (isHost) {
         // Host leaving: delete the entire room
         try {

@@ -409,11 +409,12 @@ export function renderLobbyPlayers(players, isHost, onRemove) {
 
 /**
  * Renders ready indicators on the results screen.
- * Shows a circle for each player — green if they clicked "Play Again".
+ * Shows a circle for each player — green if ready, red if left.
  * @param {string[]} playerNames - Array of player display names
  * @param {Set<number>|number[]} readyPlayers - Set or array of player indices who are ready
+ * @param {Set<number>|number[]} [leftPlayers] - Set or array of player indices who left
  */
-export function renderReadyIndicators(playerNames, readyPlayers) {
+export function renderReadyIndicators(playerNames, readyPlayers, leftPlayers) {
   const container = document.getElementById('ready-indicators');
   if (!container) return;
 
@@ -421,11 +422,13 @@ export function renderReadyIndicators(playerNames, readyPlayers) {
   container.innerHTML = '';
 
   const readySet = readyPlayers instanceof Set ? readyPlayers : new Set(readyPlayers);
+  const leftSet = leftPlayers instanceof Set ? leftPlayers : new Set(leftPlayers || []);
 
   playerNames.forEach((name, index) => {
     const dot = document.createElement('div');
     dot.className = 'ready-dot';
     if (readySet.has(index)) dot.classList.add('ready');
+    if (leftSet.has(index)) dot.classList.add('left');
 
     const circle = document.createElement('div');
     circle.className = 'dot';
