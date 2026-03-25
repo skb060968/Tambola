@@ -29,7 +29,7 @@
   --fs-called: 15px;
   --fs-title: 1.6rem;
   --fs-subtitle: 1rem;
-  --fs-ball-number: 2.2rem;
+  --fs-ball-number: 2.8rem;
   --fs-board-cell: 12px;
   --fs-ticket-cell: 14px;
   --fs-btn: 14px;
@@ -38,7 +38,7 @@
   --gap-md: 10px;
   --gap-lg: 16px;
 
-  --ball-size: 140px;
+  --ball-size: 200px;
 }
 
 /* =========================================================
@@ -337,10 +337,11 @@ body {
   font-size: var(--fs-ball-number);
   font-weight: 900;
   color: #2c1810;
-  text-shadow: 0 1px 3px rgba(255,255,255,0.5);
+  text-shadow: 0 2px 4px rgba(255,255,255,0.5);
   z-index: 1;
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateY(-10px);
+  -webkit-text-stroke: 1px rgba(0,0,0,0.15);
 }
 
 /* Spinning state: ball drops, bounces, shakes, then number reveals */
