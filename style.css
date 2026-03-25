@@ -316,7 +316,7 @@ body {
   height: 100%;
   position: relative;
   border-radius: 50%;
-  background: url("/images/ball.png") center / contain no-repeat;
+  background: url("/images/ball.png") center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
