@@ -317,11 +317,9 @@ body {
   position: relative;
   border-radius: 50%;
   background: url("/images/ball.png") center / contain no-repeat;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: box-shadow 0.3s ease;
 }
 
 /* Hide the extra 3D faces — only front face used */
@@ -366,9 +364,9 @@ body {
 }
 
 @keyframes ball-glow {
-  0%   { box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
-  50%  { box-shadow: 0 0 30px rgba(243,156,18,0.7), 0 0 60px rgba(243,156,18,0.3), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
-  100% { box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 -8px 20px rgba(0,0,0,0.2), inset 0 6px 14px rgba(255,255,255,0.3); }
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.3); }
+  100% { filter: brightness(1); }
 }
 
 .ball-sphere.spinning {
@@ -640,6 +638,27 @@ body {
   font-size: 0.8rem;
   cursor: pointer;
 }
+
+.btn-end-game {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-error);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.12s, filter 0.12s;
+}
+
+.btn-end-game:hover { filter: brightness(1.1); }
+.btn-end-game:active { transform: scale(0.9); }
+.btn-end-game[hidden] { display: none !important; }
 
 .toggle-label {
   display: flex;

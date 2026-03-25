@@ -1069,7 +1069,10 @@ function wireGameControls() {
   const btnEndGame = document.getElementById('btn-end-game');
   if (btnEndGame) {
     btnEndGame.addEventListener('click', async () => {
-      if (!isHost || !state) return;
+      if (!state) return;
+      // In online mode, only host can end the game
+      if (gameMode === 'online' && !isHost) return;
+
       stopAutoDraw();
       if (autoDrawToggle) autoDrawToggle.checked = false;
       state.gameOver = true;
