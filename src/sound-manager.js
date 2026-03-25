@@ -188,14 +188,17 @@ export function speakNumber(number) {
   if (isMuted()) return;
   if (!('speechSynthesis' in window)) return;
 
-  try {
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(`Number ${number}`);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    speechSynthesis.speak(utterance);
-  } catch (_) {}
+  // Small delay to avoid Safari dropping speech after audio playback
+  setTimeout(() => {
+    try {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(`Number ${number}`);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      speechSynthesis.speak(utterance);
+    } catch (_) {}
+  }, 150);
 }
 
 /**

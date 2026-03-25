@@ -1207,27 +1207,20 @@ function registerServiceWorker() {
       const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('✅ Service Worker registered');
 
-      // Check for updates
+      // Check if there's already a waiting worker (update ready)
+      if (registration.waiting) {
+        showUpdateToast(registration);
+      }
+
+      // Listen for new updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
 
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-            // New version available — show update toast
-            const updateToast = document.getElementById('update-toast');
-            const updateBtn = document.getElementById('update-refresh-btn');
-
-            if (updateToast) {
-              updateToast.hidden = false;
-
-              if (updateBtn) {
-                updateBtn.addEventListener('click', () => {
-                  updateToast.hidden = true;
-                  window.location.reload();
-                }, { once: true });
-              }
-            }
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version installed and waiting — show update prompt
+            showUpdateToast(registration);
           }
         });
       });
@@ -1235,6 +1228,29 @@ function registerServiceWorker() {
       console.warn('⚠️ Service Worker registration failed:', err.message);
     }
   });
+}
+
+function showUpdateToast(registration) {
+  const updateToast = document.getElementById('update-toast');
+  const updateBtn = document.getElementById('update-refresh-btn');
+  if (!updateToast) return;
+
+  updateToast.hidden = false;
+
+  if (updateBtn && !updateBtn._listenerAdded) {
+    updateBtn._listenerAdded = true;
+    updateBtn.addEventListener('click', () => {
+      updateToast.hidden = true;
+      // Tell the waiting worker to activate
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      // Reload once the new worker takes over
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    });
+  }
 }
 
 /* ======= INITIALIZATION ======= */

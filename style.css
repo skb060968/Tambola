@@ -340,7 +340,7 @@ body {
   text-shadow: 0 2px 4px rgba(255,255,255,0.5);
   z-index: 1;
   opacity: 1;
-  transform: scale(1) translateY(-25px);
+  transform: scale(1) translateY(-40px);
   -webkit-text-stroke: 1px rgba(0,0,0,0.15);
 }
 
