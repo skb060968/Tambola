@@ -328,7 +328,45 @@ export function showToast(message, duration = 1500) {
 }
 
 /**
- * Renders the results view with all pattern winners.
+ * Prize coin amounts per pattern.
+ */
+const PATTERN_PRIZES = {
+  earlyFive: 10,
+  firstLine: 20,
+  secondLine: 20,
+  thirdLine: 20,
+  fullHouse: 50,
+};
+
+/**
+ * Creates a mini CSS coin stack element with a value label.
+ * @param {number} coins - number of coins to display
+ * @returns {HTMLElement}
+ */
+function renderCoinPrize(coins) {
+  const wrap = document.createElement('span');
+  wrap.className = 'tb-coin-prize';
+
+  const stack = document.createElement('span');
+  stack.className = 'tb-coin-stack';
+  const count = coins >= 50 ? 4 : coins >= 20 ? 3 : 2;
+  for (let i = 0; i < count; i++) {
+    const coin = document.createElement('span');
+    coin.className = 'tb-coin';
+    stack.appendChild(coin);
+  }
+  wrap.appendChild(stack);
+
+  const val = document.createElement('span');
+  val.className = 'tb-coin-value';
+  val.textContent = String(coins);
+  wrap.appendChild(val);
+
+  return wrap;
+}
+
+/**
+ * Renders the results view with all pattern winners and coin prizes.
  * @param {object} claims - Claims object { earlyFive: { won, winner }, ... }
  * @param {string[]} playerNames - Array of player display names indexed by player index
  */
@@ -340,9 +378,13 @@ export function renderWinnerSummary(claims, playerNames) {
 
   const patternOrder = ['earlyFive', 'firstLine', 'secondLine', 'thirdLine', 'fullHouse'];
 
+  // Track total coins per player
+  const playerCoins = {};
+
   for (const key of patternOrder) {
     const claim = claims[key];
     const label = PATTERN_LABELS[key] || key;
+    const prize = PATTERN_PRIZES[key] || 0;
 
     const row = document.createElement('div');
     row.className = 'winner-row';
@@ -351,19 +393,64 @@ export function renderWinnerSummary(claims, playerNames) {
     patternSpan.className = 'pattern-name';
     patternSpan.textContent = label;
 
-    const winnerSpan = document.createElement('span');
-    winnerSpan.className = 'winner-name';
+    const rightSide = document.createElement('span');
+    rightSide.className = 'winner-right';
 
     if (claim && claim.won && claim.winner != null) {
-      winnerSpan.textContent = playerNames[claim.winner] || `Player ${claim.winner + 1}`;
+      const name = playerNames[claim.winner] || `Player ${claim.winner + 1}`;
+
+      const winnerSpan = document.createElement('span');
+      winnerSpan.className = 'winner-name';
+      winnerSpan.textContent = name;
+      rightSide.appendChild(winnerSpan);
+
+      rightSide.appendChild(renderCoinPrize(prize));
+
+      // Accumulate total
+      playerCoins[claim.winner] = (playerCoins[claim.winner] || 0) + prize;
     } else {
       row.classList.add('unclaimed');
+      const winnerSpan = document.createElement('span');
+      winnerSpan.className = 'winner-name';
       winnerSpan.textContent = 'Unclaimed';
+      rightSide.appendChild(winnerSpan);
     }
 
     row.appendChild(patternSpan);
-    row.appendChild(winnerSpan);
+    row.appendChild(rightSide);
     container.appendChild(row);
+  }
+
+  // Player totals section
+  const entries = Object.entries(playerCoins);
+  if (entries.length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'winner-totals-divider';
+    container.appendChild(divider);
+
+    const totalsHeader = document.createElement('div');
+    totalsHeader.className = 'winner-totals-header';
+    totalsHeader.textContent = '🏆 Prize Summary';
+    container.appendChild(totalsHeader);
+
+    // Sort by coins descending
+    entries.sort((a, b) => b[1] - a[1]);
+
+    for (const [idx, coins] of entries) {
+      const name = playerNames[idx] || `Player ${Number(idx) + 1}`;
+
+      const totalRow = document.createElement('div');
+      totalRow.className = 'winner-total-row';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'winner-total-name';
+      nameSpan.textContent = name;
+      totalRow.appendChild(nameSpan);
+
+      totalRow.appendChild(renderCoinPrize(coins));
+
+      container.appendChild(totalRow);
+    }
   }
 }
 
