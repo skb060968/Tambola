@@ -35,7 +35,6 @@ function coinRain(coinCount = 15, duration = 2500) {
     coin.style.left = `${Math.random() * 100}%`;
     coin.style.animationDelay = `${Math.random() * (duration * 0.4)}ms`;
     coin.style.animationDuration = `${1200 + Math.random() * 1000}ms`;
-    coin.style.setProperty('--coin-scale', String(0.7 + Math.random() * 0.6));
     coin.style.setProperty('--coin-drift', `${-30 + Math.random() * 60}px`);
     container.appendChild(coin);
   }
@@ -378,15 +377,23 @@ function renderCoinPrize(coins) {
   const wrap = document.createElement('span');
   wrap.className = 'tb-coin-prize';
 
-  const stack = document.createElement('span');
-  stack.className = 'tb-coin-stack';
-  const count = coins >= 50 ? 4 : coins >= 20 ? 3 : 2;
-  for (let i = 0; i < count; i++) {
-    const coin = document.createElement('span');
-    coin.className = 'tb-coin';
-    stack.appendChild(coin);
+  // Number of stacks: 1 per ~20 coins, min 1, max 3
+  const stackCount = Math.min(3, Math.max(1, Math.ceil(coins / 20)));
+
+  const stacksWrap = document.createElement('span');
+  stacksWrap.className = 'tb-coin-stacks-wrap';
+
+  for (let s = 0; s < stackCount; s++) {
+    const stack = document.createElement('span');
+    stack.className = 'tb-coin-stack';
+    for (let i = 0; i < 4; i++) {
+      const coin = document.createElement('span');
+      coin.className = 'tb-coin';
+      stack.appendChild(coin);
+    }
+    stacksWrap.appendChild(stack);
   }
-  wrap.appendChild(stack);
+  wrap.appendChild(stacksWrap);
 
   const val = document.createElement('span');
   val.className = 'tb-coin-value';
