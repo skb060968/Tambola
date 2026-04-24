@@ -18,6 +18,34 @@ const PATTERN_LABELS = {
 };
 
 /**
+ * Triggers a falling coin rain animation across the screen.
+ * @param {number} [coinCount=15] — number of coins to drop
+ * @param {number} [duration=2500] — total animation duration in ms
+ */
+function coinRain(coinCount = 15, duration = 2500) {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const container = document.createElement('div');
+  container.className = 'coin-rain-container';
+  document.body.appendChild(container);
+
+  for (let i = 0; i < coinCount; i++) {
+    const coin = document.createElement('div');
+    coin.className = 'coin-rain-drop';
+    coin.style.left = `${Math.random() * 100}%`;
+    coin.style.animationDelay = `${Math.random() * (duration * 0.4)}ms`;
+    coin.style.animationDuration = `${1200 + Math.random() * 1000}ms`;
+    coin.style.setProperty('--coin-scale', String(0.7 + Math.random() * 0.6));
+    coin.style.setProperty('--coin-drift', `${-30 + Math.random() * 60}px`);
+    container.appendChild(coin);
+  }
+
+  setTimeout(() => {
+    if (container.parentNode) container.parentNode.removeChild(container);
+  }, duration + 500);
+}
+
+/**
  * Renders a 3×9 ticket grid inside the given container.
  * @param {number[][]} ticket - 3×9 array (0 = blank)
  * @param {Set<number>} markedNumbers - Set of marked numbers
@@ -194,6 +222,9 @@ export function showCelebration(pattern, playerName) {
       origin: { y: 0.6 },
     });
   }
+
+  // Coin rain effect
+  coinRain();
 
   // Create temporary overlay announcement
   const overlay = document.createElement('div');
