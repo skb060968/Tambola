@@ -181,6 +181,8 @@ export function isMuted() {
 
 /**
  * Speaks a drawn number aloud using the browser's Speech Synthesis API.
+ * Attempts to activate speech on Tizen/Smart TV browsers by loading voices
+ * and resuming the synthesis engine before speaking.
  * Respects mute state. Falls back silently if speech synthesis is unavailable.
  * @param {number} number - The number to announce (1–90)
  */
@@ -191,11 +193,22 @@ export function speakNumber(number) {
   // Small delay to avoid Safari dropping speech after audio playback
   setTimeout(() => {
     try {
+      // Resume if paused (helps Safari and some Smart TV browsers)
+      if (speechSynthesis.paused) speechSynthesis.resume();
       speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(`Number ${number}`);
       utterance.rate = 0.95;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
+
+      // Try to pick a voice explicitly — some Tizen browsers need this
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const english = voices.find((v) => v.lang.startsWith('en')) || voices[0];
+        utterance.voice = english;
+      }
+
       speechSynthesis.speak(utterance);
     } catch (_) {}
   }, 150);
@@ -214,15 +227,23 @@ export function speakAnnouncement(playerName, patternLabel) {
 
   return new Promise((resolve) => {
     try {
+      if (speechSynthesis.paused) speechSynthesis.resume();
       speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(`${playerName} got ${patternLabel}`);
       utterance.rate = 0.9;
       utterance.pitch = 1.1;
       utterance.volume = 1.0;
+
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const english = voices.find((v) => v.lang.startsWith('en')) || voices[0];
+        utterance.voice = english;
+      }
+
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
       speechSynthesis.speak(utterance);
-      // Safety timeout in case onend never fires
       setTimeout(resolve, 4000);
     } catch (_) {
       resolve();
