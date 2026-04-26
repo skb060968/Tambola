@@ -326,7 +326,7 @@ body {
 .ball-face { display: none; }
 
 .ball-number {
-  font-size: var(--fs-ball-number);
+  font-size: calc(var(--ball-size) * 0.22);
   font-weight: 900;
   background: linear-gradient(180deg, #e74c3c, #f39c12);
   -webkit-background-clip: text;
@@ -1060,7 +1060,19 @@ body {
   .ticket-cell { height: 44px; font-size: 16px; }
   .board-cell { font-size: 14px; }
   .board-cell.called { font-size: 16px; }
-  :root { --ball-size: 110px; }
+  :root { --ball-size: 140px; }
+}
+
+/* Large TV / high-res displays */
+@media (min-width: 1920px) {
+  .app { max-width: 800px; }
+  .ticket { max-width: 700px; }
+  .number-board { max-width: 700px; }
+  .game-controls { max-width: 700px; }
+  .ticket-cell { height: 50px; font-size: 18px; }
+  .board-cell { font-size: 16px; }
+  .board-cell.called { font-size: 18px; }
+  :root { --ball-size: 200px; }
 }
 
 /* =========================================================
