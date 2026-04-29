@@ -18,30 +18,33 @@ const PATTERN_LABELS = {
 };
 
 /**
- * Triggers a falling coin rain animation across the screen.
- * @param {number} [coinCount=15] — number of coins to drop
- * @param {number} [duration=2500] — total animation duration in ms
+ * Triggers a gold coin-like confetti rain from the top of the screen.
+ * Uses canvas-confetti library with gold/yellow colors and flat shapes.
  */
-function coinRain(coinCount = 15, duration = 2500) {
+function coinRain() {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (typeof confetti !== 'function') return;
 
-  const container = document.createElement('div');
-  container.className = 'coin-rain-container';
-  document.body.appendChild(container);
+  const gold = ['#ffd700', '#daa520', '#f0c040', '#e6b422', '#ffec80'];
+  const defaults = {
+    spread: 60,
+    ticks: 100,
+    gravity: 1.2,
+    decay: 0.94,
+    startVelocity: 20,
+    shapes: ['circle'],
+    colors: gold,
+    scalar: 1.0,
+  };
 
-  for (let i = 0; i < coinCount; i++) {
-    const coin = document.createElement('div');
-    coin.className = 'coin-rain-drop';
-    coin.style.left = `${Math.random() * 100}%`;
-    coin.style.animationDelay = `${Math.random() * (duration * 0.4)}ms`;
-    coin.style.animationDuration = `${1200 + Math.random() * 1000}ms`;
-    coin.style.setProperty('--coin-drift', `${-30 + Math.random() * 60}px`);
-    container.appendChild(coin);
-  }
+  confetti({ ...defaults, particleCount: 25, origin: { x: 0.2, y: 0 }, angle: 270 });
+  confetti({ ...defaults, particleCount: 30, origin: { x: 0.5, y: 0 }, angle: 270 });
+  confetti({ ...defaults, particleCount: 25, origin: { x: 0.8, y: 0 }, angle: 270 });
 
   setTimeout(() => {
-    if (container.parentNode) container.parentNode.removeChild(container);
-  }, duration + 500);
+    confetti({ ...defaults, particleCount: 20, origin: { x: 0.3, y: 0 }, angle: 260 });
+    confetti({ ...defaults, particleCount: 20, origin: { x: 0.7, y: 0 }, angle: 280 });
+  }, 300);
 }
 
 /**
