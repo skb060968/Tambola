@@ -13,8 +13,10 @@
     "firebase": "^12.9.0"
   },
   "devDependencies": {
+    "edge-tts-node": "^1.5.7",
     "fast-check": "latest",
     "jsdom": "^29.0.1",
+    "msedge-tts": "^2.0.5",
     "vite": "^7.3.1",
     "vitest": "latest"
   },

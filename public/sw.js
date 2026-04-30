@@ -5,7 +5,7 @@
    - Update detection + prompt support
    ============================== */
 
-const CACHE_NAME = "tambola-v11";
+const CACHE_NAME = "tambola-v12";
 
 // Pre-cache truly static assets (not Vite-hashed JS/CSS)
 const STATIC_ASSETS = [
@@ -20,6 +20,8 @@ const STATIC_ASSETS = [
   "/sounds/win.mp3",
   "/sounds/error.mp3",
   "/sounds/claim.mp3",
+  // Number announcement audio files (1-90)
+  ...Array.from({ length: 90 }, (_, i) => `/sounds/numbers/${i + 1}.mp3`),
 ];
 
 /* ==============================
