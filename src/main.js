@@ -419,7 +419,8 @@ function handleClaim(pattern) {
       state.claims[pattern] = { won: true, winner: playerIndex };
       const name = playerNames[playerIndex] || `Player ${playerIndex + 1}`;
       showCelebration(pattern, name);
-      speakAnnouncement(name, PATTERN_LABELS[pattern] || pattern).then(() => playSound('win'));
+      playSound('win', 0.3);
+      speakAnnouncement(name, PATTERN_LABELS[pattern] || pattern);
       updateGameUI();
       if (checkGameOver()) showResults();
     } else {
@@ -440,7 +441,8 @@ function handleClaim(pattern) {
       state.claims[pattern] = { won: true, winner: i };
       const name = `Player ${i + 1}`;
       showCelebration(pattern, name);
-      speakAnnouncement(name, PATTERN_LABELS[pattern] || pattern).then(() => playSound('win'));
+      playSound('win', 0.3);
+      speakAnnouncement(name, PATTERN_LABELS[pattern] || pattern);
       updateGameUI();
       saveGameState(state);
       if (checkGameOver()) {
@@ -771,7 +773,8 @@ function handleOnlineGameUpdate(gameData) {
         state.claims[pattern] = { won: true, winner: claimData.winner };
         const winnerName = playerNames[claimData.winner] || `Player ${claimData.winner + 1}`;
         showCelebration(pattern, winnerName);
-        speakAnnouncement(winnerName, PATTERN_LABELS[pattern] || pattern).then(() => playSound('win'));
+        playSound('win', 0.3);
+        speakAnnouncement(winnerName, PATTERN_LABELS[pattern] || pattern);
         claimChanged = true;
       }
     }

@@ -110,8 +110,9 @@ export function initAudio() {
  * Falls back to HTML Audio element if AudioContext is unavailable or buffer not loaded.
  *
  * @param {string} name - One of 'draw', 'mark', 'win', 'error', 'claim'
+ * @param {number} [volume=1.0] - Volume level from 0.0 to 1.0
  */
-export function playSound(name) {
+export function playSound(name, volume = 1.0) {
   if (isMuted()) return;
 
   const url = SOUND_FILES[name];
@@ -119,18 +120,19 @@ export function playSound(name) {
 
   const ctx = getAudioContext();
 
-  // Check if AudioContext is in a state that won't produce sound (device silent mode)
   if (ctx && ctx.state === 'suspended') {
-    // Attempt resume but don't block playback
     resumeContext();
   }
 
-  // Preferred path: AudioContext buffer source
+  // Preferred path: AudioContext buffer source with gain control
   if (ctx && ctx.state === 'running' && soundBuffers[name]) {
     try {
       const source = ctx.createBufferSource();
       source.buffer = soundBuffers[name];
-      source.connect(ctx.destination);
+      const gainNode = ctx.createGain();
+      gainNode.gain.value = volume;
+      source.connect(gainNode);
+      gainNode.connect(ctx.destination);
       source.start(0);
       return;
     } catch (_) {
@@ -141,12 +143,9 @@ export function playSound(name) {
   // Fallback: HTML Audio element
   try {
     const audio = new Audio(url);
-    audio.play().catch(() => {
-      // Autoplay blocked or file missing — fail silently
-    });
-  } catch (_) {
-    // Audio constructor not available — fail silently
-  }
+    audio.volume = volume;
+    audio.play().catch(() => {});
+  } catch (_) {}
 }
 
 /**
