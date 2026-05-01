@@ -1202,24 +1202,6 @@ function wireResults() {
 
 /* ======= SERVICE WORKER ======= */
 
-const APP_VERSION = 'v15';
-const APP_VERSION_KEY = 'tambola_app_version';
-
-/**
- * Checks if the app version changed since last visit.
- * Shows a brief "Updated" toast if so.
- */
-function checkAppVersionUpdate() {
-  try {
-    const lastVersion = localStorage.getItem(APP_VERSION_KEY);
-    if (lastVersion && lastVersion !== APP_VERSION) {
-      // Version changed — show a brief toast
-      showToast('✅ Updated to latest version', 2500);
-    }
-    localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
-  } catch (_) {}
-}
-
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
@@ -1397,9 +1379,6 @@ async function init() {
 
   // Register service worker
   registerServiceWorker();
-
-  // Check if app was updated since last visit
-  checkAppVersionUpdate();
 
   // Try to rejoin online session first (survives page refresh)
   const rejoined = await checkOnlineSession();
