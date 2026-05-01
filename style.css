@@ -109,8 +109,12 @@ body {
 .game-title {
   font-size: 2.2rem;
   font-family: Georgia, serif;
-  text-shadow: 0 3px 10px rgba(0,0,0,0.7);
   letter-spacing: 1px;
+  background: linear-gradient(180deg, #ffffff 0%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.7));
 }
 
 .game-subtitle {

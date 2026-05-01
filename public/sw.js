@@ -5,7 +5,7 @@
    - Update detection + prompt support
    ============================== */
 
-const CACHE_NAME = "tambola-v13";
+const CACHE_NAME = "tambola-v14";
 
 // Pre-cache truly static assets (not Vite-hashed JS/CSS)
 const STATIC_ASSETS = [
