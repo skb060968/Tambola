@@ -18,6 +18,7 @@ const MUTE_KEY = 'tambola_muted';
 
 let audioCtx = null;
 let soundBuffers = {};
+let numberBuffers = {};
 let initialized = false;
 
 /**
@@ -77,12 +78,31 @@ function preloadSounds() {
 }
 
 /**
+ * Pre-loads number audio buffers (1-90) into AudioContext.
+ * Uses a staggered approach to avoid overwhelming the browser.
+ */
+function preloadNumberBuffers() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  for (let n = 1; n <= 90; n++) {
+    const url = `/sounds/numbers/${n}.mp3`;
+    fetch(url)
+      .then((r) => r.ok ? r.arrayBuffer() : null)
+      .then((buf) => buf ? ctx.decodeAudioData(buf) : null)
+      .then((decoded) => { if (decoded) numberBuffers[n] = decoded; })
+      .catch(() => {});
+  }
+}
+
+/**
  * Unlock handler attached to first user interaction.
- * Resumes AudioContext and pre-loads sound buffers.
+ * Resumes AudioContext and pre-loads all sound buffers.
  */
 async function unlockHandler() {
   await resumeContext();
   preloadSounds();
+  preloadNumberBuffers();
   initialized = true;
 }
 
@@ -179,8 +199,8 @@ export function isMuted() {
 }
 
 /**
- * Speaks a drawn number aloud using pre-generated audio files.
- * Falls back to speechSynthesis if the audio file is unavailable.
+ * Speaks a drawn number aloud using pre-generated audio files via AudioContext.
+ * Falls back to HTML Audio, then speechSynthesis if both fail.
  * Respects mute state.
  * @param {number} number - The number to announce (1–90)
  */
@@ -188,6 +208,27 @@ export function speakNumber(number) {
   if (isMuted()) return;
   if (number < 1 || number > 90) return;
 
+  const ctx = getAudioContext();
+
+  // Resume if suspended (Safari/iPad can suspend after inactivity)
+  if (ctx && ctx.state === 'suspended') {
+    resumeContext();
+  }
+
+  // Preferred: AudioContext buffer (survives Safari autoplay restrictions)
+  if (ctx && ctx.state === 'running' && numberBuffers[number]) {
+    try {
+      const source = ctx.createBufferSource();
+      source.buffer = numberBuffers[number];
+      source.connect(ctx.destination);
+      source.start(0);
+      return;
+    } catch (_) {
+      // Fall through
+    }
+  }
+
+  // Fallback 1: HTML Audio element
   try {
     const audio = new Audio(`/sounds/numbers/${number}.mp3`);
     audio.volume = 1.0;
